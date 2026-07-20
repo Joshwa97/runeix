@@ -21,3 +21,7 @@ typedef union NativeView {
 } NativeView;
 
 typedef NativeView OSRawWindow;
+
+// Forward declaration for backing scale factor
+struct OSWindow;
+double OSGetBackingScaleFactor(OSWindow wnd);

@@ -19,6 +19,7 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
 
 	exports.Set("newWindowListener", Napi::Function::New(env, NewWindowListener));
 	exports.Set("removeWindowListener", Napi::Function::New(env, RemoveWindowListener));
+	exports.Set("getBackingScaleFactor", Napi::Function::New(env, JSGetBackingScaleFactor));
 	return exports;
 }
 

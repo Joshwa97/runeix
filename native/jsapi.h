@@ -86,6 +86,16 @@ Napi::Value GetClientBounds(const Napi::CallbackInfo& info) { return OSWindow::F
 Napi::Value GetWindowTitle(const Napi::CallbackInfo& info) { return Napi::String::New(info.Env(), OSWindow::FromJsValue(info[0]).GetTitle()); }
 Napi::Value GetMouseState(const Napi::CallbackInfo& info) { return Napi::Boolean::New(info.Env(), OSGetMouseState()); }
 
+#ifdef OS_MAC
+Napi::Value JSGetBackingScaleFactor(const Napi::CallbackInfo& info) {
+	return Napi::Number::New(info.Env(), OSGetBackingScaleFactor(OSWindow::FromJsValue(info[0])));
+}
+#else
+Napi::Value JSGetBackingScaleFactor(const Napi::CallbackInfo& info) {
+	return Napi::Number::New(info.Env(), 1.0);
+}
+#endif
+
 void SetWindowParent(const Napi::CallbackInfo& info) {
 	auto wnd = OSWindow::FromJsValue(info[0]);
 	auto parent = OSWindow::FromJsValue(info[1]);

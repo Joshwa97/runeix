@@ -224,6 +224,36 @@ void OSSetWindowParent(OSWindow wnd, OSWindow parent) {
 	// Window ordering is handled at the Electron level via alwaysOnTop + window pinning.
 }
 
+#pragma mark - Backing Scale Factor
+
+static CGFloat GetBackingScaleFactorForWindow(CGWindowID windowId) {
+	CGRect bounds = GetCGWindowBounds(windowId);
+	if (CGRectIsEmpty(bounds)) return 1.0;
+
+	CGPoint center = CGPointMake(CGRectGetMidX(bounds), CGRectGetMidY(bounds));
+
+	// Find which display contains the window center
+	CGDirectDisplayID displayID;
+	uint32_t matchingDisplayCount;
+	CGGetDisplaysWithPoint(center, 1, &displayID, &matchingDisplayCount);
+
+	if (matchingDisplayCount > 0) {
+		for (NSScreen* screen in [NSScreen screens]) {
+			NSDictionary* desc = [screen deviceDescription];
+			CGDirectDisplayID screenDisplayID = [[desc objectForKey:@"NSScreenNumber"] unsignedIntValue];
+			if (screenDisplayID == displayID) {
+				return [screen backingScaleFactor];
+			}
+		}
+	}
+
+	return [[NSScreen mainScreen] backingScaleFactor];
+}
+
+CGFloat OSGetBackingScaleFactor(OSWindow wnd) {
+	return GetBackingScaleFactorForWindow(WindowID(wnd));
+}
+
 #pragma mark - Screen Capture
 
 void OSCaptureWindowMulti(OSWindow wnd, vector<CaptureRect> rects) {
@@ -233,7 +263,7 @@ void OSCaptureWindowMulti(OSWindow wnd, vector<CaptureRect> rects) {
 		CGRectNull,
 		kCGWindowListOptionIncludingWindow,
 		windowId,
-		kCGWindowImageBoundsIgnoreFraming | kCGWindowImageNominalResolution
+		kCGWindowImageBoundsIgnoreFraming
 	);
 
 	if (!windowImage) {
@@ -321,7 +351,7 @@ void OSCaptureDesktopMulti(OSWindow wnd, vector<CaptureRect> rects) {
 		windowBounds,
 		kCGWindowListOptionOnScreenBelowWindow,
 		WindowID(wnd),
-		kCGWindowImageDefault | kCGWindowImageNominalResolution
+		kCGWindowImageDefault
 	);
 
 	if (!screenImage) {

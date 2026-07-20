@@ -196,22 +196,26 @@ export class RsInstance extends TypedEmitter<RsInstanceEvents>{
 		}
 	}
 
+	getBackingScale() {
+		return native.getBackingScaleFactor(this.window.handle);
+	}
+
 	screenToClient(p: PointLike) {
 		let rsrect = this.window.getClientBounds();
-		//TODO add scaling
-		return { x: p.x - rsrect.x, y: p.y - rsrect.y };
+		let scale = this.getBackingScale();
+		return { x: (p.x - rsrect.x) * scale, y: (p.y - rsrect.y) * scale };
 	}
 
 	clientToScreen(p: PointLike) {
 		let rsrect = this.window.getClientBounds();
-		//TODO add scaling
-		return { x: p.x + rsrect.x, y: p.y + rsrect.y };
+		let scale = this.getBackingScale();
+		return { x: p.x / scale + rsrect.x, y: p.y / scale + rsrect.y };
 	}
 
 	getClientSize() {
-		//TODO this doesn't account for scaling
 		let rect = this.window.getClientBounds();
-		return { width: rect.width, height: rect.height };
+		let scale = this.getBackingScale();
+		return { width: rect.width * scale, height: rect.height * scale };
 	}
 
 	capture(rect: RectLike) {
