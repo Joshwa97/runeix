@@ -51,7 +51,7 @@
 					]
 				}
 			],
-			"icon": "src/imgs/alt1icon.png",
+			"icon": "src/imgs/icon.png",
 			"hardenedRuntime": false,
 			"entitlements": null,
 			"entitlementsInherit": null
@@ -62,7 +62,7 @@
 				"deb"
 			],
 			"category": "Game",
-			"icon": "src/imgs/alt1icon.png"
+			"icon": "src/imgs/icon.png"
 		}
 	},
 	"author": "",
