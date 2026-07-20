@@ -10,7 +10,7 @@
 		"ui": "electron --inspect=9228 ./dist/runeix.bundle.js",
 		"native": "npm run nativerelease -- --debug",
 		"nativerelease": "electron-rebuild -f -w runeix",
-		"install": "npm run native",
+		"postinstall": "node -e \"if (!process.env.CI) require('child_process').execSync('npm run native', {stdio:'inherit'})\"",
 		"pack": "electron-builder --dir",
 		"dist": "electron-builder"
 	},
