@@ -428,10 +428,10 @@ void OSCaptureMulti(OSWindow wnd, CaptureMode mode, vector<CaptureRect> rects, N
 			OSCaptureDesktopMulti(wnd, rects);
 			break;
 		case CaptureMode::Window:
+		case CaptureMode::OpenGL:
+			// OpenGL capture is not available on macOS, fall back to window capture
 			OSCaptureWindowMulti(wnd, rects);
 			break;
-		default:
-			throw Napi::RangeError::New(env, "Capture mode not supported on macOS");
 	}
 }
 
