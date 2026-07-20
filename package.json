@@ -57,7 +57,7 @@
 			],
 			"category": "Game",
 			"icon": "src/imgs/alt1icon.png"
-		},
+		}
 	},
 	"author": "",
 	"license": "GPL-3.0",
