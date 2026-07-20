@@ -5,7 +5,7 @@
 	"main": "dist/runeix.bundle.js",
 	"scripts": {
 		"build": "node --experimental-strip-types ./node_modules/webpack/bin/webpack.js",
-		"release": "npm run build -- -p",
+		"release": "npm run build -- --mode production",
 		"watch": "npm run build -- --watch",
 		"ui": "electron --inspect=9228 ./dist/runeix.bundle.js",
 		"native": "npm run nativerelease -- --debug",
