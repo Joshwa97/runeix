@@ -12,11 +12,12 @@ import { boundMethod } from "autobind-decorator";
 import * as remoteMain from "@electron/remote/main";
 import { initIpcApi } from "./ipcapi";
 
+// Expose main module globally - required by appframe via @electron/remote getGlobal
+(global as any).Alt1lite = require("./main");
+
 if (process.env.NODE_ENV === "development") {
 	patchImageDataShow();
-	//exposed on global for debugging purposes
 	(global as any).native = require("./native");
-	(global as any).Alt1lite = require("./main");
 }
 
 export const admins = new Set<number>();
@@ -24,7 +25,7 @@ export const managedWindows: ManagedWindow[] = [];
 export function getManagedWindow(w: WebContents) { return managedWindows.find(q => q.window.webContents == w); }
 export function getManagedAppWindow(id: number) { return managedWindows.find(q => q.appFrameId == id || q.window.webContents.id == id); }
 var tray: Tray | null = null;
-var alt1icon = nativeImage.createFromPath(relPath(require("!file-loader!./imgs/alt1icon.png").default));
+var alt1icon = nativeImage.createFromPath(relPath(require("!file-loader!./imgs/alt1icon.png").default)).resize({ width: 18, height: 18 });
 var tooltipWindow: TooltipWindow | null = null;
 var alwaysOpenDevtools = false;
 
