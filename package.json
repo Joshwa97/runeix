@@ -38,11 +38,17 @@
 			"target": [
 				{
 					"target": "dmg",
-					"arch": ["x64", "arm64"]
+					"arch": [
+						"x64",
+						"arm64"
+					]
 				},
 				{
 					"target": "zip",
-					"arch": ["x64", "arm64"]
+					"arch": [
+						"x64",
+						"arm64"
+					]
 				}
 			],
 			"icon": "src/imgs/alt1icon.png",
@@ -87,6 +93,7 @@
 		"sass-loader": "^10.1.1",
 		"style-loader": "^2.0.0",
 		"ts-loader": "^8.0.14",
+		"ts-node": "^10.9.2",
 		"typescript": "^5.7.3",
 		"url-loader": "^4.1.1",
 		"webpack-cli": "^4.9.2",
