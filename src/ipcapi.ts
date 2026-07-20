@@ -1,5 +1,5 @@
 import * as a1lib from "alt1";
-import { IpcMain, IpcMainEvent, IpcMainInvokeEvent, screen } from "electron/main"
+import { BrowserWindow, IpcMain, IpcMainEvent, IpcMainInvokeEvent, screen } from "electron/main"
 import { sameDomainResolve } from "./lib";
 import { admins, fixTooltip, getManagedAppWindow, ManagedWindow, openApp } from "./main";
 import { native } from "./native";
@@ -13,14 +13,37 @@ const snapthresh = 140;
 
 function expectAppWindow(e: IpcMainEvent | IpcMainInvokeEvent) {
 	let wnd = getManagedAppWindow(e.sender.id);
+	if (!wnd) {
+		// Webview guest: try matching by owner BrowserWindow
+		let ownerWindow = BrowserWindow.fromWebContents(e.sender);
+		if (ownerWindow) {
+			wnd = getManagedAppWindow(ownerWindow.webContents.id);
+			if (wnd && wnd.appFrameId === -1) {
+				wnd.appFrameId = e.sender.id;
+			}
+		}
+	}
 	if (!wnd) { throw new Error("App context not found"); }
-	//TODO check if e.senderFrame.url is same origin as appconfig
 	return wnd;
 }
 
 function expectPermittedRsClient(e: IpcMainEvent | IpcMainInvokeEvent) {
 	let wnd = getManagedAppWindow(e.sender.id);
 	if (wnd) { return wnd.rsClient; }
+	// If appFrameId hasn't been set yet, try matching by owner BrowserWindow
+	if (!wnd) {
+		let ownerWindow = BrowserWindow.fromWebContents(e.sender);
+		if (ownerWindow) {
+			wnd = getManagedAppWindow(ownerWindow.webContents.id);
+			if (wnd) {
+				// Set appFrameId now so future lookups work directly
+				if (wnd.appFrameId === -1) {
+					wnd.appFrameId = e.sender.id;
+				}
+				return wnd.rsClient;
+			}
+		}
+	}
 	if (admins.has(e.sender.id)) {
 		let instance = rsInstances[0];
 		if (!instance) { throw new Error("no rs clients bound"); }

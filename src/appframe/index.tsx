@@ -43,7 +43,6 @@ function AppFrame(p: {}) {
 			console.log(`[cluetrainer] ${e.message}`);
 		});
 		view.addEventListener("dom-ready", () => {
-			//TODO is there a better way to get a ref to the frame?
 			thiswindow.appFrameId = view.getWebContentsId();
 			appcontents = remote.webContents.fromId(appview!.getWebContentsId()) ?? null;
 			console.log("webview loaded, alt1 available:", !!appcontents);
