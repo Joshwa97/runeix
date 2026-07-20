@@ -217,6 +217,7 @@ export function initIpcApi(ipcMain: IpcMain) {
 			let capt = native.captureWindowMulti(client.window.handle, settings.captureMode, { main: { x, y, width, height } });
 			e.returnValue = { value: { width, height, data: capt.main } };
 		} catch (err) {
+			console.error("capturesync error:", err);
 			e.returnValue = { error: "" + err };
 		}
 	});
