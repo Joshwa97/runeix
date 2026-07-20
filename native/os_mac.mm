@@ -258,12 +258,15 @@ CGFloat OSGetBackingScaleFactor(OSWindow wnd) {
 
 void OSCaptureWindowMulti(OSWindow wnd, vector<CaptureRect> rects) {
 	CGWindowID windowId = WindowID(wnd);
+	CGRect windowBounds = GetCGWindowBounds(windowId);
 
+	// Capture at native resolution (no kCGWindowImageNominalResolution)
+	// to avoid lossy downscaling on Retina displays
 	CGImageRef windowImage = CGWindowListCreateImage(
 		CGRectNull,
 		kCGWindowListOptionIncludingWindow,
 		windowId,
-		kCGWindowImageBoundsIgnoreFraming | kCGWindowImageNominalResolution
+		kCGWindowImageBoundsIgnoreFraming
 	);
 
 	if (!windowImage) {
@@ -276,6 +279,20 @@ void OSCaptureWindowMulti(OSWindow wnd, vector<CaptureRect> rects) {
 
 	size_t imgWidth = CGImageGetWidth(windowImage);
 	size_t imgHeight = CGImageGetHeight(windowImage);
+
+	// Log dimensions once for diagnostics
+	static bool logged = false;
+	if (!logged) {
+		std::cout << "[capture] window bounds: " << windowBounds.size.width << "x" << windowBounds.size.height
+		          << " image: " << imgWidth << "x" << imgHeight
+		          << " scale: " << (windowBounds.size.width > 0 ? (float)imgWidth / windowBounds.size.width : 0)
+		          << std::endl;
+		logged = true;
+	}
+
+	// Calculate actual scale between captured image and logical window bounds
+	float scaleX = (windowBounds.size.width > 0) ? (float)imgWidth / windowBounds.size.width : 1.0f;
+	float scaleY = (windowBounds.size.height > 0) ? (float)imgHeight / windowBounds.size.height : 1.0f;
 	size_t bytesPerRow = imgWidth * 4;
 
 	CGColorSpaceRef colorSpace = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
@@ -312,31 +329,51 @@ void OSCaptureWindowMulti(OSWindow wnd, vector<CaptureRect> rects) {
 		int rw = rect.rect.width;
 		int rh = rect.rect.height;
 
-		for (int row = 0; row < rh; row++) {
-			int srcY = ry + row;
-			if (srcY < 0 || srcY >= (int)imgHeight) {
-				memset(dest + row * rw * 4, 0, rw * 4);
-				continue;
-			}
+		if (scaleX == 1.0f && scaleY == 1.0f) {
+			// No scaling needed - direct copy (1x display or matching resolution)
+			for (int row = 0; row < rh; row++) {
+				int srcY = ry + row;
+				if (srcY < 0 || srcY >= (int)imgHeight) {
+					memset(dest + row * rw * 4, 0, rw * 4);
+					continue;
+				}
 
-			int srcStartX = std::max(0, rx);
-			int srcEndX = std::min((int)imgWidth, rx + rw);
-			int destStartCol = srcStartX - rx;
-			int destEndCol = srcEndX - rx;
+				int srcStartX = std::max(0, rx);
+				int srcEndX = std::min((int)imgWidth, rx + rw);
+				int destStartCol = srcStartX - rx;
+				int destEndCol = srcEndX - rx;
 
-			// Zero out any columns before the valid source range
-			if (destStartCol > 0) {
-				memset(dest + row * rw * 4, 0, destStartCol * 4);
+				if (destStartCol > 0) {
+					memset(dest + row * rw * 4, 0, destStartCol * 4);
+				}
+				if (srcEndX > srcStartX) {
+					int srcIdx = (srcY * (int)imgWidth + srcStartX) * 4;
+					int destIdx = (row * rw + destStartCol) * 4;
+					memcpy(dest + destIdx, pixelData.data() + srcIdx, (srcEndX - srcStartX) * 4);
+				}
+				if (destEndCol < rw) {
+					memset(dest + (row * rw + destEndCol) * 4, 0, (rw - destEndCol) * 4);
+				}
 			}
-			// Copy valid pixel data
-			if (srcEndX > srcStartX) {
-				int srcIdx = (srcY * (int)imgWidth + srcStartX) * 4;
-				int destIdx = (row * rw + destStartCol) * 4;
-				memcpy(dest + destIdx, pixelData.data() + srcIdx, (srcEndX - srcStartX) * 4);
-			}
-			// Zero out any columns after the valid source range
-			if (destEndCol < rw) {
-				memset(dest + (row * rw + destEndCol) * 4, 0, (rw - destEndCol) * 4);
+		} else {
+			// Retina display: point-sample from the high-res image to avoid
+			// CoreGraphics' lossy bilinear downscaling
+			for (int row = 0; row < rh; row++) {
+				int srcY = (int)((ry + row) * scaleY);
+				if (srcY < 0 || srcY >= (int)imgHeight) {
+					memset(dest + row * rw * 4, 0, rw * 4);
+					continue;
+				}
+				for (int col = 0; col < rw; col++) {
+					int srcX = (int)((rx + col) * scaleX);
+					int destIdx = (row * rw + col) * 4;
+					if (srcX < 0 || srcX >= (int)imgWidth) {
+						memset(dest + destIdx, 0, 4);
+					} else {
+						int srcIdx = (srcY * (int)imgWidth + srcX) * 4;
+						memcpy(dest + destIdx, pixelData.data() + srcIdx, 4);
+					}
+				}
 			}
 		}
 
@@ -347,11 +384,12 @@ void OSCaptureWindowMulti(OSWindow wnd, vector<CaptureRect> rects) {
 void OSCaptureDesktopMulti(OSWindow wnd, vector<CaptureRect> rects) {
 	CGRect windowBounds = GetCGWindowBounds(WindowID(wnd));
 
+	// Capture at native resolution to avoid lossy downscaling
 	CGImageRef screenImage = CGWindowListCreateImage(
 		windowBounds,
 		kCGWindowListOptionOnScreenBelowWindow,
 		WindowID(wnd),
-		kCGWindowImageDefault | kCGWindowImageNominalResolution
+		kCGWindowImageDefault
 	);
 
 	if (!screenImage) {
@@ -364,6 +402,9 @@ void OSCaptureDesktopMulti(OSWindow wnd, vector<CaptureRect> rects) {
 	size_t imgWidth = CGImageGetWidth(screenImage);
 	size_t imgHeight = CGImageGetHeight(screenImage);
 	size_t bytesPerRow = imgWidth * 4;
+
+	float scaleX = (windowBounds.size.width > 0) ? (float)imgWidth / windowBounds.size.width : 1.0f;
+	float scaleY = (windowBounds.size.height > 0) ? (float)imgHeight / windowBounds.size.height : 1.0f;
 
 	CGColorSpaceRef colorSpace = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
 	std::vector<uint8_t> pixelData(imgWidth * imgHeight * 4);
@@ -399,24 +440,44 @@ void OSCaptureDesktopMulti(OSWindow wnd, vector<CaptureRect> rects) {
 		int rw = rect.rect.width;
 		int rh = rect.rect.height;
 
-		for (int row = 0; row < rh; row++) {
-			int srcY = ry + row;
-			if (srcY < 0 || srcY >= (int)imgHeight) {
-				memset(dest + row * rw * 4, 0, rw * 4);
-				continue;
-			}
-			int srcStartX = std::max(0, rx);
-			int srcEndX = std::min((int)imgWidth, rx + rw);
-			int destStartCol = srcStartX - rx;
-			int destEndCol = srcEndX - rx;
+		if (scaleX == 1.0f && scaleY == 1.0f) {
+			for (int row = 0; row < rh; row++) {
+				int srcY = ry + row;
+				if (srcY < 0 || srcY >= (int)imgHeight) {
+					memset(dest + row * rw * 4, 0, rw * 4);
+					continue;
+				}
+				int srcStartX = std::max(0, rx);
+				int srcEndX = std::min((int)imgWidth, rx + rw);
+				int destStartCol = srcStartX - rx;
+				int destEndCol = srcEndX - rx;
 
-			if (destStartCol > 0) memset(dest + row * rw * 4, 0, destStartCol * 4);
-			if (srcEndX > srcStartX) {
-				int srcIdx = (srcY * (int)imgWidth + srcStartX) * 4;
-				int destIdx = (row * rw + destStartCol) * 4;
-				memcpy(dest + destIdx, pixelData.data() + srcIdx, (srcEndX - srcStartX) * 4);
+				if (destStartCol > 0) memset(dest + row * rw * 4, 0, destStartCol * 4);
+				if (srcEndX > srcStartX) {
+					int srcIdx = (srcY * (int)imgWidth + srcStartX) * 4;
+					int destIdx = (row * rw + destStartCol) * 4;
+					memcpy(dest + destIdx, pixelData.data() + srcIdx, (srcEndX - srcStartX) * 4);
+				}
+				if (destEndCol < rw) memset(dest + (row * rw + destEndCol) * 4, 0, (rw - destEndCol) * 4);
 			}
-			if (destEndCol < rw) memset(dest + (row * rw + destEndCol) * 4, 0, (rw - destEndCol) * 4);
+		} else {
+			for (int row = 0; row < rh; row++) {
+				int srcY = (int)((ry + row) * scaleY);
+				if (srcY < 0 || srcY >= (int)imgHeight) {
+					memset(dest + row * rw * 4, 0, rw * 4);
+					continue;
+				}
+				for (int col = 0; col < rw; col++) {
+					int srcX = (int)((rx + col) * scaleX);
+					int destIdx = (row * rw + col) * 4;
+					if (srcX < 0 || srcX >= (int)imgWidth) {
+						memset(dest + destIdx, 0, 4);
+					} else {
+						int srcIdx = (srcY * (int)imgWidth + srcX) * 4;
+						memcpy(dest + destIdx, pixelData.data() + srcIdx, 4);
+					}
+				}
+			}
 		}
 		fillImageOpaque(rect.data, rect.size);
 	}
