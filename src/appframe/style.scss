@@ -1,0 +1,136 @@
+body {
+	overflow: hidden;
+	background: none;
+}
+webview {
+	background: url('./decoration/background.png');
+}
+.approot {
+	position: absolute;
+	z-index: 10;
+	top: 0px;
+	left: 0px;
+	bottom: 0px;
+	right: 0px;
+	//need to turn off pointerevent for clickthrough effect
+	pointer-events: none;
+}
+
+.appgrid {
+	position: absolute;
+	z-index: 20;
+	top: 0px;
+	left: 0px;
+	bottom: 0px;
+	right: 0px;
+	display: grid;
+	grid-template-columns: 4px auto 4px;
+	grid-template-rows: 4px auto 4px;
+	pointer-events: all;
+}
+
+.appframe {
+	grid-row: 2;
+	grid-column: 2;
+	min-width: 0;
+	min-height: 0;
+}
+
+.buttonroot {
+	position: absolute;
+	z-index: 30;
+	top: 0px;
+	right: 0px;
+	pointer-events: all;
+}
+.button {
+	-webkit-app-region: no-drag;
+	background-position: 0px 0px;
+	width: 12px;
+	height: 12px;
+	cursor: pointer;
+	float: right;
+
+	&:hover {
+		background-position: 0px 50%;
+	}
+}
+
+.button-close {
+	background: url('./decoration/exit.png');
+	&:hover {
+		background: url('./decoration/exitHover.png');
+	}
+}
+
+.button-minimize {
+	background: url('./decoration/minimize.png');
+	&:hover {
+		background: url('./decoration/minimizeHover.png');
+	}
+}
+
+.button-restore {
+	background: url('./decoration/restore.png');
+	&:hover {
+		background: url('./decoration/restoreHover.png');
+	}
+}
+
+.button-settings {
+	background: url('./decoration/settings.png');
+	&:hover {
+		background: url('./decoration/settingsHover.png');
+	}
+}
+
+.dragbutton {
+	float: right;
+	background: url('./decoration/borderDrag.png');
+	cursor: move;
+	width: 24px;
+	height: 8px;
+}
+
+.border {
+	user-select: none;
+	-webkit-user-select: none;
+
+	&-left {
+		background: url('./decoration/borderL.png');
+	}
+	&-right {
+		background: url('./decoration/borderR.png');
+	}
+	&-top {
+		background: url('./decoration/borderT.png');
+	}
+	&-bot {
+		background: url('./decoration/borderB.png');
+	}
+	
+	&-left,
+	&-right {
+		cursor: ew-resize;
+	}
+	&-top,
+	&-bot {
+		cursor: ns-resize;
+	}
+	&-topleft {
+		background: url('./decoration/borderTL.png');
+		cursor: nwse-resize;
+	}
+	&-topright {
+		background: url('./decoration/borderTR.png');
+		cursor: nesw-resize;
+	}
+	&-botleft {
+		background: url('./decoration/borderBL.png');
+		cursor: nesw-resize;
+	}
+	&-botright {
+		background: url('./decoration/borderBR.png');
+		cursor: nwse-resize;
+	}
+}

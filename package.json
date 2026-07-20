@@ -1,0 +1,113 @@
+{
+	"name": "runeix",
+	"version": "0.1.0",
+	"description": "Cross-platform overlay for RuneScape 3 - Alt1 Toolkit compatible",
+	"main": "dist/runeix.bundle.js",
+	"scripts": {
+		"build": "node --experimental-strip-types ./node_modules/webpack/bin/webpack.js",
+		"release": "npm run build -- -p",
+		"watch": "npm run build -- --watch",
+		"ui": "electron --inspect=9228 ./dist/runeix.bundle.js",
+		"native": "npm run nativerelease -- --debug",
+		"nativerelease": "electron-rebuild -f -w runeix",
+		"install": "npm run native",
+		"pack": "electron-builder --dir",
+		"dist": "electron-builder"
+	},
+	"build": {
+		"appId": "com.runeix.app",
+		"productName": "Runeix",
+		"directories": {
+			"output": "output"
+		},
+		"files": [
+			"dist/**/*",
+			"build/Release/addon.node",
+			"node_modules/**/*",
+			"!node_modules/**/build/**/*",
+			"!node_modules/**/*.{md,map,ts}"
+		],
+		"extraResources": [
+			{
+				"from": "build/Release/addon.node",
+				"to": "native/addon.node"
+			}
+		],
+		"mac": {
+			"category": "public.app-category.games",
+			"target": [
+				{
+					"target": "dmg",
+					"arch": ["x64", "arm64"]
+				},
+				{
+					"target": "zip",
+					"arch": ["x64", "arm64"]
+				}
+			],
+			"icon": "src/imgs/alt1icon.png",
+			"hardenedRuntime": false,
+			"entitlements": null,
+			"entitlementsInherit": null
+		},
+		"linux": {
+			"target": [
+				"AppImage",
+				"deb"
+			],
+			"category": "Game",
+			"icon": "src/imgs/alt1icon.png"
+		},
+		"win": {
+			"target": [
+				"nsis",
+				"portable"
+			],
+			"icon": "src/imgs/alt1icon.png"
+		},
+		"nsis": {
+			"oneClick": true,
+			"allowToChangeInstallationDirectory": false
+		}
+	},
+	"author": "",
+	"license": "GPL-3.0",
+	"devDependencies": {
+		"@alt1/font-loader": "^1.0.0-alpha.2",
+		"@alt1/imagedata-loader": "^1.0.0-alpha.2",
+		"@alt1/webpack": "^1.0.0-alpha.5",
+		"@types/autobind-decorator": "^2.1.0",
+		"@types/classnames": "^2.2.11",
+		"@types/node-fetch": "^2.5.8",
+		"@types/react": "^17.0.0",
+		"@types/react-dom": "^17.0.0",
+		"@types/webpack": "^4.41.26",
+		"@types/webpack-node-externals": "^2.5.0",
+		"alt1": "^0.1.0",
+		"asar": "^3.0.3",
+		"autobind-decorator": "^2.4.0",
+		"classnames": "^2.2.6",
+		"css-loader": "^5.0.1",
+		"electron-builder": "^25.1.8",
+		"electron-rebuild": "^3.2.7",
+		"file-loader": "^6.2.0",
+		"json-loader": "^0.5.7",
+		"nan": "^2.14.2",
+		"node-addon-api": "^3.1.0",
+		"sass": "^1.56.1",
+		"sass-loader": "^10.1.1",
+		"style-loader": "^2.0.0",
+		"ts-loader": "^8.0.14",
+		"typescript": "^5.7.3",
+		"url-loader": "^4.1.1",
+		"webpack-cli": "^4.9.2",
+		"webpack-node-externals": "^2.5.2"
+	},
+	"dependencies": {
+		"@electron/remote": "^2.0.8",
+		"electron": "^34.3.0",
+		"node-fetch": "^2.6.1",
+		"react": "^17.0.1",
+		"react-dom": "^17.0.1"
+	}
+}
