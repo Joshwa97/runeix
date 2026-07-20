@@ -20,8 +20,6 @@ jobs:
             arch: x64
           - os: ubuntu-latest
             arch: x64
-          - os: windows-latest
-            arch: x64
 
     runs-on: ${{ matrix.os }}
 
@@ -46,7 +44,7 @@ jobs:
             libxcb-composite0-dev \
             libxcb-record0-dev \
             libxcb-shape0-dev \
-            libprocps-dev \
+            libproc2-dev \
             libx11-dev \
             rpm
 
@@ -71,12 +69,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Package (Windows)
-        if: runner.os == 'Windows'
-        run: npx electron-builder --win
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -86,7 +78,6 @@ jobs:
             output/*.zip
             output/*.AppImage
             output/*.deb
-            output/*.exe
           if-no-files-found: warn
 
   release:
