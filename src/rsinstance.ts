@@ -202,20 +202,17 @@ export class RsInstance extends TypedEmitter<RsInstanceEvents>{
 
 	screenToClient(p: PointLike) {
 		let rsrect = this.window.getClientBounds();
-		let scale = this.getBackingScale();
-		return { x: (p.x - rsrect.x) * scale, y: (p.y - rsrect.y) * scale };
+		return { x: p.x - rsrect.x, y: p.y - rsrect.y };
 	}
 
 	clientToScreen(p: PointLike) {
 		let rsrect = this.window.getClientBounds();
-		let scale = this.getBackingScale();
-		return { x: p.x / scale + rsrect.x, y: p.y / scale + rsrect.y };
+		return { x: p.x + rsrect.x, y: p.y + rsrect.y };
 	}
 
 	getClientSize() {
 		let rect = this.window.getClientBounds();
-		let scale = this.getBackingScale();
-		return { width: rect.width * scale, height: rect.height * scale };
+		return { width: rect.width, height: rect.height };
 	}
 
 	capture(rect: RectLike) {

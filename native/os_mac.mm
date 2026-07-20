@@ -263,7 +263,7 @@ void OSCaptureWindowMulti(OSWindow wnd, vector<CaptureRect> rects) {
 		CGRectNull,
 		kCGWindowListOptionIncludingWindow,
 		windowId,
-		kCGWindowImageBoundsIgnoreFraming
+		kCGWindowImageBoundsIgnoreFraming | kCGWindowImageNominalResolution
 	);
 
 	if (!windowImage) {
@@ -351,7 +351,7 @@ void OSCaptureDesktopMulti(OSWindow wnd, vector<CaptureRect> rects) {
 		windowBounds,
 		kCGWindowListOptionOnScreenBelowWindow,
 		WindowID(wnd),
-		kCGWindowImageDefault
+		kCGWindowImageDefault | kCGWindowImageNominalResolution
 	);
 
 	if (!screenImage) {

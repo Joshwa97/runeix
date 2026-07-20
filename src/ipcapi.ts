@@ -134,11 +134,8 @@ function startDrag(wnd: ManagedWindow, left: boolean, top: boolean, right: boole
 	let dirx = 0;
 	let diry = 0;
 
-	let scale = wnd.rsClient.getBackingScale();
-	let captWidth = Math.round(rsbounds.width * scale);
-	let captHeight = Math.round(rsbounds.height * scale);
-	let imgdata = native.captureWindowMulti(wnd.rsClient.window.handle, settings.captureMode, { main: { x: 0, y: 0, width: captWidth, height: captHeight } }).main;
-	let img: FlatImageData = { data: imgdata, width: captWidth, height: captHeight };
+	let imgdata = native.captureWindowMulti(wnd.rsClient.window.handle, settings.captureMode, { main: { x: 0, y: 0, width: rsbounds.width, height: rsbounds.height } }).main;
+	let img: FlatImageData = { data: imgdata, width: rsbounds.width, height: rsbounds.height };
 
 	let tick = () => {
 		//can't rely on any window events for this since were crossing like 5 processes and 23 threads
@@ -162,29 +159,25 @@ function startDrag(wnd: ManagedWindow, left: boolean, top: boolean, right: boole
 		let snapdx = 0;
 		let snapdy = 0;
 
-		// Scale logical coordinates to physical pixels for edge detection in the captured image
-		let sl = wndleft * scale, st = wndtop * scale, sr = wndright * scale, sb = wndbot * scale;
-		let sd = snapdistance * scale;
-
 		if (dirx > 0 && right) {
-			let rect = new a1lib.Rect(sr, st, sd, sb - st);
+			let rect = new a1lib.Rect(wndright, wndtop, snapdistance, wndbot - wndtop);
 			let edge = detectCornerEdge(img, rect, false, false, snapthresh);
-			if (edge.score > snapthresh) { snapdx = (edge.pos - sr) / scale; }
+			if (edge.score > snapthresh) { snapdx = edge.pos - wndright; }
 		}
 		if (dirx < 0 && left) {
-			let rect = new a1lib.Rect(sl - sd, st, sd, sb - st);
+			let rect = new a1lib.Rect(wndleft - snapdistance, wndtop, snapdistance, wndbot - wndtop);
 			let edge = detectCornerEdge(img, rect, false, true, snapthresh);
-			if (edge.score > snapthresh) { snapdx = (edge.pos - sl) / scale; }
+			if (edge.score > snapthresh) { snapdx = edge.pos - wndleft; }
 		}
 		if (diry > 0 && bot) {
-			let rect = new a1lib.Rect(sl, sb, sr - sl, sd);
+			let rect = new a1lib.Rect(wndleft, wndbot, wndright - wndleft, snapdistance);
 			let edge = detectCornerEdge(img, rect, true, false, snapthresh);
-			if (edge.score > snapthresh) { snapdy = (edge.pos - sb) / scale; }
+			if (edge.score > snapthresh) { snapdy = edge.pos - wndbot; }
 		}
 		if (diry < 0 && top) {
-			let rect = new a1lib.Rect(sr, st - sd, sr - sl, sd);
+			let rect = new a1lib.Rect(wndright, wndtop - snapdistance, wndright - wndleft, snapdistance);
 			let edge = detectCornerEdge(img, rect, true, true, snapthresh);
-			if (edge.score > snapthresh) { snapdy = (edge.pos - st) / scale; }
+			if (edge.score > snapthresh) { snapdy = edge.pos - wndtop; }
 		}
 
 		//apply snap displacement
@@ -253,19 +246,12 @@ export function initIpcApi(ipcMain: IpcMain) {
 
 	ipcMain.on("rsbounds", syncwrap((e) => {
 		let client = expectPermittedRsClient(e);
-		let logicalRect = client.window.getClientBounds();
-		let scale = client.getBackingScale();
 		let state: RsClientState = {
 			active: client.isActive,
-			clientRect: {
-				x: Math.round(logicalRect.x * scale),
-				y: Math.round(logicalRect.y * scale),
-				width: Math.round(logicalRect.width * scale),
-				height: Math.round(logicalRect.height * scale)
-			},
+			clientRect: client.window.getClientBounds(),
 			lastActiveTime: client.lastActiveTime,
 			ping: 10,//TODO
-			scaling: 1,// 1 because we report physical pixel dimensions directly
+			scaling: 1,//TODO
 			captureMode: settings.captureMode
 		};
 		e.returnValue = { value: state };

@@ -127,9 +127,8 @@ function redraw(now: number, force = false) {
 
 	let drawcount = 0;
 	if (force || currentnextupdate <= now) {
-		let dpr = window.devicePixelRatio || 1;
-		cnv.width = cnv.clientWidth * dpr;
-		cnv.height = cnv.clientHeight * dpr;
+		cnv.width = cnv.clientWidth;
+		cnv.height = cnv.clientHeight;
 		//js uses center of pixel definition
 		ctx.translate(0.5, 0.5);
 
