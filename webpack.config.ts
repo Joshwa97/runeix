@@ -22,10 +22,15 @@ function addMain(env: Record<string, string | boolean>) {
 	}
 	config.addExternal("canvas", null);
 	config.addExternal("sharp", null);
-	config.addExternal("electron", "electron");
-	config.addExternal("electron/main", "electron/main");
-	config.addExternal("electron/renderer", "electron/renderer");
-	config.addExternal("electron/common", "electron/common");
+	config.chain.externals([
+		...(Array.isArray(config.chain.get('externals')) ? config.chain.get('externals') : [config.chain.get('externals')]).filter(Boolean),
+		({ request }: any, callback: any) => {
+			if (request === 'electron' || request?.startsWith('electron/')) {
+				return callback(null, 'commonjs ' + request);
+			}
+			callback();
+		}
+	]);
 	return config.toConfig();
 }
 
