@@ -35,7 +35,9 @@ app.on("browser-window-created", (e, wnd) => {
 });
 
 const originalCwd = process.cwd();
-process.chdir(__dirname);
+if (!app.isPackaged) {
+	process.chdir(__dirname);
+}
 if (!app.requestSingleInstanceLock()) { app.exit(); }
 
 // protocol scheme
