@@ -111,6 +111,9 @@ export class OSWindowPin extends TypedEmitter<OSWindowPinEvents>{
 		this.updateDocking();
 		this.oswindow = new OSWindow(window.getNativeWindowHandle());
 		native.setWindowParent(this.oswindow.handle, parent.handle);
+		if (process.platform === "darwin") {
+			window.setAlwaysOnTop(true, "floating");
+		}
 		this.parent.on("move", this.onmove);
 		this.parent.on("close", this.onclose);
 	}

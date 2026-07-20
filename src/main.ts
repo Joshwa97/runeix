@@ -75,6 +75,28 @@ app.once("ready", () => {
 	if (!globalShortcut.register("Alt+1", alt1Pressed)) {
 		console.log("failed to register alt+1 hotkey");
 	}
+
+	// macOS: check Screen Recording permission (needed for CGWindowListCreateImage)
+	if (process.platform === "darwin") {
+		const { systemPreferences } = require("electron");
+		const hasScreenCapture = systemPreferences.getMediaAccessStatus("screen");
+		if (hasScreenCapture !== "granted") {
+			console.log("Screen Recording permission not granted, requesting...");
+			const { dialog } = require("electron");
+			dialog.showMessageBox({
+				type: "info",
+				title: "Screen Recording Permission Required",
+				message: "Runeix needs Screen Recording permission to capture the RuneScape window.",
+				detail: "Please grant Screen Recording access in System Settings > Privacy & Security > Screen Recording, then restart the app.",
+				buttons: ["Open System Settings", "Continue Anyway"]
+			}).then(result => {
+				if (result.response === 0) {
+					require("electron").shell.openExternal("x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture");
+				}
+			});
+		}
+	}
+
 	drawTray();
 	initIpcApi(ipcMain);
 	initRsInstanceTracking();
