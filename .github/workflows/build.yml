@@ -11,15 +11,7 @@ permissions:
 
 jobs:
   build:
-    strategy:
-      matrix:
-        include:
-          - os: macos-latest
-            arch: arm64
-          - os: macos-13
-            arch: x64
-
-    runs-on: ${{ matrix.os }}
+    runs-on: macos-latest
 
     steps:
       - name: Checkout
@@ -44,14 +36,14 @@ jobs:
         run: npx electron-rebuild -f
 
       - name: Package
-        run: npx electron-builder --mac --${{ matrix.arch }}
+        run: npx electron-builder --mac --arm64
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: runeix-${{ matrix.os }}-${{ matrix.arch }}
+          name: runeix-macos-arm64
           path: |
             output/*.dmg
             output/*.zip
