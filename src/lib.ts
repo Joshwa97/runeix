@@ -1,6 +1,6 @@
 import * as path from "path";
 import * as fs from "fs";
-import { shell } from "electron";
+import { app, shell } from "electron";
 import { ImageData } from "alt1";
 
 declare global {
@@ -13,7 +13,7 @@ export class UserError extends Error { }
 
 export const schemestring = "alt1lite";
 export const weborigin = "https://runeapps.org";
-export const configFile = "./config.json";
+export const configFile = path.join(app.getPath("userData"), "config.json");
 
 //needed because node-fetch tries to be correct by choking on BOM
 export async function readJsonWithBOM(res: { text(): Promise<string> }) {

@@ -74,15 +74,14 @@ class ManagedSettings extends TypedEmitter<SettingsEvents> {
 			this.settings = checkSettings.load(file, { defaultOnError: true });
 			this.appconfig.setBookmarks(this.settings.bookmarks);
 		} catch (e) {
-			console.log("couldn't load config");
+			console.log("couldn't load config, setting up defaults");
 			this.settings = checkSettings.default();
 			this.appconfig.setBookmarks(this.settings.bookmarks);
-	
-			fetch(`${weborigin}/data/alt1/defaultapps.json`).then(r => readJsonWithBOM(r)).then(async (r: { folder: string, name: string, url: string }[]) => {
-				for (let appbase of r) {
-					await this.appconfig.identifyApp(new URL(`${weborigin}${appbase.url}`));
-				}
-			});
+
+			// Install cluetrainer as default app
+			this.appconfig.identifyApp(new URL("https://cluetrainer.app/appconfig.json"))
+				.then(() => this.save())
+				.catch(e => console.error("failed to load cluetrainer config:", e));
 		}
 		this.emit("changed");
 	}

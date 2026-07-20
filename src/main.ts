@@ -208,7 +208,7 @@ function drawTray() {
 		tray = new Tray(alt1icon);
 		tray.on("click", e => tray!.popUpContextMenu());
 	}
-	tray.setToolTip("Alt1 Lite");
+	tray.setToolTip("Runeix");
 	updateTray();
 }
 
