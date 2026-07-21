@@ -98,7 +98,8 @@
 							"-framework CoreGraphics",
 							"-framework CoreFoundation",
 							"-framework AppKit",
-							"-framework ApplicationServices"
+							"-framework ApplicationServices",
+							"-framework ImageIO"
 						]
 					}
 				}],
